@@ -12,12 +12,12 @@ namespace WebAPICrudDemo.Repository
     public class EmployeeRepository : IEmployeeRepository
     {
         EmployeeContext context;
-        private readonly IDepartmentRepository deptRepository;
+        IDepartmentRepository deptRepository;
 
-        public EmployeeRepository(EmployeeContext _context, IDepartmentRepository _deptRepository)
+        public EmployeeRepository(EmployeeContext _context)
         {
             context = _context;
-            deptRepository = _deptRepository;
+            
         }
         public async Task<EmployeeViewModel> AddEmployee(EmployeeViewModel employeeModel)
         {
@@ -32,19 +32,19 @@ namespace WebAPICrudDemo.Repository
 
                 try
                 {
-                    if (employeeModel.DepartmentId == 0)
-                    {
-                        Department department = new Department();
-                        department.DepartmentName = employeeModel.DepartmentName;
-                        await deptRepository.AddDepartment(department);
-                    }
+                    //if (employeeModel.DepartmentId == 0)
+                    //{
+                    //    Department department = new Department();
+                    //    department.DepartmentName = employeeModel.DepartmentName;
+                    //    await deptRepository.AddDepartment(department);
+                    //}
                     Employee employee = new Employee
                     {
                         Id = employeeModel.Id,
                         EmployeeName = employeeModel.EmployeeName,
-                        DepartmentId = employeeModel.DepartmentId,
+                        DepartmentId = employeeModel.DepartmentId
                     };
-                        
+
                     await context.Employees.AddAsync(employee);
                     await context.SaveChangesAsync();
 
