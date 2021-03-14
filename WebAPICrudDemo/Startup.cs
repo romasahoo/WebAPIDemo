@@ -6,10 +6,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using WebAPICrudDemo.Repository;
 
 namespace WebAPICrudDemo
 {
@@ -27,8 +30,15 @@ namespace WebAPICrudDemo
         {
 
             services.AddControllers();
-            services.AddDbContext<EmployeeContext>(x =>
-            x.UseSqlServer(Configuration.GetConnectionString("DevConnection")));
+            services.AddDbContext<EmployeeContext>(
+                x => x.UseLazyLoadingProxies()
+            .UseSqlServer(Configuration.GetConnectionString("DevConnection")));
+
+            services.AddMvc(option => option.EnableEndpointRouting = false).SetCompatibilityVersion(CompatibilityVersion.Version_3_0)
+            .AddNewtonsoftJson(option => option.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
+
+            services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

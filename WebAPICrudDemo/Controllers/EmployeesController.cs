@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebAPICrudDemo;
 using WebAPICrudDemo.Models;
+using WebAPICrudDemo.Repository;
+using WebAPICrudDemo.ViewModel;
 
 namespace WebAPICrudDemo.Controllers
 {
@@ -14,95 +16,141 @@ namespace WebAPICrudDemo.Controllers
     [ApiController]
     public class EmployeesController : ControllerBase
     {
-        private readonly EmployeeContext _context;
+        IEmployeeRepository repository;
 
-        public EmployeesController(EmployeeContext context)
+        public EmployeesController(IEmployeeRepository _repository)
         {
-            _context = context;
+            repository = _repository;
         }
 
         // GET: api/Employees
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Employee>>> GetEmployees()
+        [Route("GetEmployees")]
+        public async Task<IActionResult> GetEmployees()
         {
-            return await _context.Employees.ToListAsync();
+            try
+            {
+                var employees = await repository.GetEmployees();
+                if (employees == null)
+                {
+                    return NotFound();
+                }
+
+                return Ok(employees);
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
         }
 
         // GET: api/Employees/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Employee>> GetEmployee(int id)
+        [HttpGet]
+        [Route("GetEmployee")]
+        public async Task<IActionResult> GetEmployee(int? id)
         {
-            var employee = await _context.Employees.FindAsync(id);
-
-            if (employee == null)
-            {
-                return NotFound();
-            }
-
-            return employee;
-        }
-
-        // PUT: api/Employees/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutEmployee(int id, Employee employee)
-        {
-            if (id != employee.Id)
+            if (id == null)
             {
                 return BadRequest();
             }
 
-            _context.Entry(employee).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!EmployeeExists(id))
+                var result = await repository.GetEmployee(id);
+
+                if (result == null)
                 {
                     return NotFound();
                 }
-                else
+
+                return Ok(result);
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
+        }
+
+        // PUT: api/Employees/5
+        [HttpPut]
+        [Route("UpdateEmployee")]
+        public async Task<IActionResult> UpdateEmployee([FromBody]Employee model)
+        {
+            if (ModelState.IsValid)
+            {
+                try
                 {
-                    throw;
+                    await repository.UpdateEmployee(model);
+
+                    return Ok();
+                }
+                catch (Exception ex)
+                {
+                    if (ex.GetType().FullName ==
+                             "Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException")
+                    {
+                        return NotFound();
+                    }
+
+                    return BadRequest();
                 }
             }
 
-            return NoContent();
+            return BadRequest();
         }
 
         // POST: api/Employees
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Employee>> PostEmployee(Employee employee)
+        [Route("AddEmployee")]
+        public async Task<IActionResult> AddEmployee([FromBody] EmployeeViewModel employee)
         {
-            _context.Employees.Add(employee);
-            await _context.SaveChangesAsync();
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var employeeId = await repository.AddEmployee(employee);
+                    
+                        return Ok(employeeId);
+                    
+                   
+                }
+                catch (Exception)
+                {
 
-            return CreatedAtAction("GetEmployee", new { id = employee.Id }, employee);
+                    return BadRequest();
+                }
+
+            }
+
+            return BadRequest();
         }
 
         // DELETE: api/Employees/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteEmployee(int id)
+        [HttpDelete]
+        [Route("DeleteEmployee")]
+        public async Task<IActionResult> DeleteEmployee(int? id)
         {
-            var employee = await _context.Employees.FindAsync(id);
-            if (employee == null)
+            int result = 0;
+
+            if (id == null)
             {
-                return NotFound();
+                return BadRequest();
             }
 
-            _context.Employees.Remove(employee);
-            await _context.SaveChangesAsync();
+            try
+            {
+                result = await repository.DeleteEmployee(id);
+                if (result == 0)
+                {
+                    return NotFound();
+                }
+                return Ok();
+            }
+            catch (Exception)
+            {
 
-            return NoContent();
-        }
-
-        private bool EmployeeExists(int id)
-        {
-            return _context.Employees.Any(e => e.Id == id);
+                return BadRequest();
+            }
         }
     }
 }

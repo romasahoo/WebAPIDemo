@@ -13,6 +13,11 @@ namespace WebAPICrudDemo
         {
 
         }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Department>().Ignore(c => c.Employees);
+        }
         public DbSet<Department> Departments { get; set; }
         public DbSet<Employee> Employees { get; set; }
     }

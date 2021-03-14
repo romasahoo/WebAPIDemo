@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AutoMapper.Configuration.Annotations;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -11,7 +12,7 @@ namespace WebAPICrudDemo.Models
         [Key]
         public int Id { get; set; }
 
-        public string DeptName { get; set; }
+        public string DepartmentName { get; set; }
 
         public virtual ICollection<Employee> Employees { get; set; }
     }
