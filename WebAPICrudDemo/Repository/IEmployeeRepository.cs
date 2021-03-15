@@ -13,7 +13,7 @@ namespace WebAPICrudDemo.Repository
 
         Task<EmployeeViewModel> GetEmployee(int? id);
 
-        Task<EmployeeViewModel> AddEmployee(EmployeeViewModel employee);
+        Task<Employee> AddEmployee(EmployeeViewModel employee);
 
         Task<int> DeleteEmployee(int? id);
 

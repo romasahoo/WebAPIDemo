@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -12,43 +13,38 @@ namespace WebAPICrudDemo.Repository
     public class EmployeeRepository : IEmployeeRepository
     {
         EmployeeContext context;
-        IDepartmentRepository deptRepository;
 
         public EmployeeRepository(EmployeeContext _context)
         {
             context = _context;
-            
+
         }
-        public async Task<EmployeeViewModel> AddEmployee(EmployeeViewModel employeeModel)
+        public async Task<Employee> AddEmployee(EmployeeViewModel employeeModel)
         {
 
-                if(string.IsNullOrWhiteSpace(employeeModel.EmployeeName) || (string.IsNullOrWhiteSpace(employeeModel.DepartmentName)))
-                {
-                   
-                    throw new ArgumentNullException($"{nameof(AddEmployee)} entity must not be null");
-                }
-                else
-                {
+            if (string.IsNullOrWhiteSpace(employeeModel.EmployeeName) || (string.IsNullOrWhiteSpace(employeeModel.DepartmentName)))
+            {
 
+                throw new ArgumentNullException($"{nameof(AddEmployee)} entity must not be null");
+            }
+            else
+            {
                 try
                 {
-                    //if (employeeModel.DepartmentId == 0)
-                    //{
-                    //    Department department = new Department();
-                    //    department.DepartmentName = employeeModel.DepartmentName;
-                    //    await deptRepository.AddDepartment(department);
-                    //}
+                    var department = context.Departments.FirstOrDefault(d => d.DepartmentName == employeeModel.DepartmentName);
+                    var departmentId = department.Id;
+
                     Employee employee = new Employee
                     {
                         Id = employeeModel.Id,
                         EmployeeName = employeeModel.EmployeeName,
-                        DepartmentId = employeeModel.DepartmentId
+                        DepartmentId = departmentId,
                     };
 
                     await context.Employees.AddAsync(employee);
                     await context.SaveChangesAsync();
 
-                    return employeeModel;
+                    return employee;
                 }
                 catch (Exception ex)
                 {
@@ -60,22 +56,19 @@ namespace WebAPICrudDemo.Repository
 
         public async Task<int> DeleteEmployee(int? id)
         {
-            int result = 0;
-
             if (context != null)
             {
-                var employee = await context.Employees.FirstOrDefaultAsync(x => x.Id == id);
+                var employee = await context.Employees.FirstAsync(x => x.Id == id);
 
                 if (employee != null)
                 {
                     context.Employees.Remove(employee);
-                   
-                    result = await context.SaveChangesAsync();
+
+                    await context.SaveChangesAsync();
                 }
-                return result;
             }
 
-            return result;
+            return Convert.ToInt32(id);
         }
 
         public async Task<EmployeeViewModel> GetEmployee(int? id)
@@ -100,16 +93,16 @@ namespace WebAPICrudDemo.Repository
 
         public async Task<List<EmployeeViewModel>> GetEmployees()
         {
-            if(context != null)
+            if (context != null)
             {
-                return await(from e in context.Employees
-                             select new EmployeeViewModel
-                             {
-                                 Id = e.Id,
-                                 EmployeeName = e.EmployeeName,
-                                 DepartmentId = e.DepartmentId,
-                                 DepartmentName = e.Department.DepartmentName
-                             }).ToListAsync();
+                return await (from e in context.Employees
+                              select new EmployeeViewModel
+                              {
+                                  Id = e.Id,
+                                  EmployeeName = e.EmployeeName,
+                                  DepartmentId = e.DepartmentId,
+                                  DepartmentName = e.Department.DepartmentName
+                              }).ToListAsync();
             }
             return null;
         }

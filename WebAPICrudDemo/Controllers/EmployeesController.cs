@@ -108,20 +108,22 @@ namespace WebAPICrudDemo.Controllers
             {
                 try
                 {
-                    var employeeId = await repository.AddEmployee(employee);
+                    var employeeObject = await repository.AddEmployee(employee);
                     
-                        return Ok(employeeId);
-                    
-                   
+                        return Ok(employeeObject);
                 }
                 catch (Exception)
                 {
-
-                    return BadRequest();
+                    if(employee.DepartmentName == null)
+                    {
+                        return StatusCode(400, employee.DepartmentName + "value not provided");
+                    }
+                    else if (employee.EmployeeName == null)
+                    {
+                        return StatusCode(400, employee.EmployeeName + "value not provided");
+                    }
                 }
-
             }
-
             return BadRequest();
         }
 
@@ -130,7 +132,7 @@ namespace WebAPICrudDemo.Controllers
         [Route("DeleteEmployee")]
         public async Task<IActionResult> DeleteEmployee(int? id)
         {
-            int result = 0;
+            int result;
 
             if (id == null)
             {
