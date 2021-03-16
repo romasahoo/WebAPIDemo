@@ -17,6 +17,6 @@ namespace WebAPICrudDemo.Repository
 
         Task<int> DeleteEmployee(int? id);
 
-        Task UpdateEmployee(Employee employee);
+        Task<Employee> UpdateEmployee(int id, EmployeeViewModel employeeModel);
     }
 }

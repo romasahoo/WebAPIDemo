@@ -72,15 +72,15 @@ namespace WebAPICrudDemo.Controllers
         }
 
         // PUT: api/Employees/5
-        [HttpPut]
+        [HttpPut("{id}")]
         [Route("UpdateEmployee")]
-        public async Task<IActionResult> UpdateEmployee([FromBody]Employee model)
+        public async Task<IActionResult> UpdateEmployee(int id, EmployeeViewModel employeeViewModel)
         {
             if (ModelState.IsValid)
             {
                 try
                 {
-                    await repository.UpdateEmployee(model);
+                    await repository.UpdateEmployee(id,employeeViewModel);
 
                     return Ok();
                 }

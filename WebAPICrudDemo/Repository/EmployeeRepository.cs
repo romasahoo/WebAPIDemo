@@ -38,7 +38,7 @@ namespace WebAPICrudDemo.Repository
                     {
                         Id = employeeModel.Id,
                         EmployeeName = employeeModel.EmployeeName,
-                        DepartmentId = departmentId,
+                        DepartmentId = departmentId
                     };
 
                     await context.Employees.AddAsync(employee);
@@ -107,13 +107,35 @@ namespace WebAPICrudDemo.Repository
             return null;
         }
 
-        public async Task UpdateEmployee(Employee employee)
+        public async Task<Employee> UpdateEmployee(int id, EmployeeViewModel employeeModel)
        {
-            if (context != null)
+            var dbEmployee = await context.Employees.FindAsync(id);
+            var department = await (from e in context.Employees
+                                    where e.Id == employeeModel.Id
+                                    select e).FirstOrDefaultAsync();
+            var departmentId = department.DepartmentId;
+
+            if (dbEmployee != null)
             {
-                context.Employees.Update(employee);
-                await context.SaveChangesAsync();
+                dbEmployee.EmployeeName = employeeModel.EmployeeName;
+                dbEmployee.DepartmentId = departmentId;
             }
+            
+
+                
+                //var departmentName = await (from d in context.Departments where d.Id == departmentId select d).FirstOrDefaultAsync();
+                //employeeModel.DepartmentName = departmentName.DepartmentName;
+
+                //employee = new Employee
+                //{
+                    
+                //    EmployeeName = employeeModel.EmployeeName,
+                //    DepartmentId = departmentId
+                //};
+                //context.Employees.Update(employee);
+                await context.SaveChangesAsync();
+            
+            return dbEmployee;
         }
     }
 }
