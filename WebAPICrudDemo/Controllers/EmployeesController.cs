@@ -123,11 +123,11 @@ namespace WebAPICrudDemo.Controllers
                 {
                     if(employee.DepartmentName == null)
                     {
-                        return StatusCode(400, " Department Name is not provided");
+                        return StatusCode(400, "Department Name is not provided");
                     }
                     else if (employee.EmployeeName == null)
                     {
-                        return StatusCode(400, " Employee Name is not provided");
+                        return StatusCode(400, "Employee Name is not provided");
                     }
                 }
             }
