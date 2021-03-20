@@ -17,8 +17,44 @@ namespace WebAPICrudDemo.Repository
         public EmployeeRepository(EmployeeContext _context)
         {
             context = _context;
-
         }
+
+        public async Task<List<EmployeeViewModel>> GetEmployees()
+        {
+            if (context != null)
+            {
+                return await (from e in context.Employees
+                              select new EmployeeViewModel
+                              {
+                                  Id = e.Id,
+                                  EmployeeName = e.EmployeeName,
+                                  DepartmentId = e.DepartmentId,
+                                  DepartmentName = e.Department.DepartmentName
+                              }).ToListAsync();
+            }
+            return null;
+        }
+
+        public async Task<EmployeeViewModel> GetEmployee(int? id)
+        {
+            if (context != null)
+            {
+                return await (from e in context.Employees
+                              from d in context.Departments
+                              where e.Department.Id == id
+                              select new EmployeeViewModel
+                              {
+                                  Id = e.Id,
+                                  EmployeeName = e.EmployeeName,
+                                  DepartmentId = e.Department.Id,
+                                  DepartmentName = e.Department.DepartmentName
+
+                              }).FirstOrDefaultAsync();
+            }
+
+            return null;
+        }
+        
         public async Task<Employee> AddEmployee(EmployeeViewModel employeeModel)
         {
 
@@ -54,6 +90,25 @@ namespace WebAPICrudDemo.Repository
 
         }
 
+        public async Task<Employee> UpdateEmployee(EmployeeViewModel employeeModel)
+        {
+            var dbEmployee = await context.Employees.FindAsync(employeeModel.Id);
+            var department = await (from e in context.Employees
+                                    where e.Id == employeeModel.Id
+                                    select e).FirstOrDefaultAsync();
+            var departmentId = department.DepartmentId;
+
+            if (dbEmployee != null)
+            {
+                dbEmployee.EmployeeName = employeeModel.EmployeeName;
+                dbEmployee.DepartmentId = departmentId;
+            }
+
+            await context.SaveChangesAsync();
+
+            return dbEmployee;
+        }
+
         public async Task<int> DeleteEmployee(int? id)
         {
             if (context != null)
@@ -69,73 +124,6 @@ namespace WebAPICrudDemo.Repository
             }
 
             return Convert.ToInt32(id);
-        }
-
-        public async Task<EmployeeViewModel> GetEmployee(int? id)
-        {
-            if (context != null)
-            {
-                return await (from e in context.Employees
-                              from d in context.Departments
-                              where e.Department.Id == id
-                              select new EmployeeViewModel
-                              {
-                                  Id = e.Id,
-                                  EmployeeName = e.EmployeeName,
-                                  DepartmentId = e.Department.Id,
-                                  DepartmentName = e.Department.DepartmentName
-
-                              }).FirstOrDefaultAsync();
-            }
-
-            return null;
-        }
-
-        public async Task<List<EmployeeViewModel>> GetEmployees()
-        {
-            if (context != null)
-            {
-                return await (from e in context.Employees
-                              select new EmployeeViewModel
-                              {
-                                  Id = e.Id,
-                                  EmployeeName = e.EmployeeName,
-                                  DepartmentId = e.DepartmentId,
-                                  DepartmentName = e.Department.DepartmentName
-                              }).ToListAsync();
-            }
-            return null;
-        }
-
-        public async Task<Employee> UpdateEmployee(int id, EmployeeViewModel employeeModel)
-       {
-            var dbEmployee = await context.Employees.FindAsync(id);
-            var department = await (from e in context.Employees
-                                    where e.Id == employeeModel.Id
-                                    select e).FirstOrDefaultAsync();
-            var departmentId = department.DepartmentId;
-
-            if (dbEmployee != null)
-            {
-                dbEmployee.EmployeeName = employeeModel.EmployeeName;
-                dbEmployee.DepartmentId = departmentId;
-            }
-            
-
-                
-                //var departmentName = await (from d in context.Departments where d.Id == departmentId select d).FirstOrDefaultAsync();
-                //employeeModel.DepartmentName = departmentName.DepartmentName;
-
-                //employee = new Employee
-                //{
-                    
-                //    EmployeeName = employeeModel.EmployeeName,
-                //    DepartmentId = departmentId
-                //};
-                //context.Employees.Update(employee);
-                await context.SaveChangesAsync();
-            
-            return dbEmployee;
         }
     }
 }

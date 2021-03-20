@@ -74,15 +74,23 @@ namespace WebAPICrudDemo.Controllers
         // PUT: api/Employees/5
         [HttpPut("{id}")]
         [Route("UpdateEmployee")]
-        public async Task<IActionResult> UpdateEmployee(int id, EmployeeViewModel employeeViewModel)
+        public async Task<IActionResult> UpdateEmployee(EmployeeViewModel employeeViewModel)
         {
             if (ModelState.IsValid)
             {
                 try
                 {
-                    await repository.UpdateEmployee(id,employeeViewModel);
+                    if(employeeViewModel.Id > 0)
+                    {
+                        await repository.UpdateEmployee(employeeViewModel);
 
-                    return Ok();
+                        return Ok();
+                    }
+                    else
+                    {
+                        return StatusCode(400, "Employee Id is not provided");
+                    }
+                    
                 }
                 catch (Exception ex)
                 {
@@ -91,7 +99,6 @@ namespace WebAPICrudDemo.Controllers
                     {
                         return NotFound();
                     }
-
                     return BadRequest();
                 }
             }

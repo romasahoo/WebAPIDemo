@@ -13,10 +13,10 @@ namespace WebAPICrudDemo.Repository
 
         Task<DepartmentViewModel> GetDepartment(int? id);
 
-        Task<Department> AddDepartment(Department department);
+        Task<Department> AddDepartment(DepartmentViewModel department);
 
         Task<int> DeleteDepartment(int? id);
 
-        Task UpdateDepartment(Department department);
+        Task<Department> UpdateDepartment(DepartmentViewModel department);
     }
 }

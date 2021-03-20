@@ -21,7 +21,7 @@
     },
     "resourceName": {
       "type": "string",
-      "defaultValue": "CoreCrudApi",
+      "defaultValue": "WebAPICrudDemo20210317141631",
       "metadata": {
         "description": "Name of the main resource to be created by this template."
       }

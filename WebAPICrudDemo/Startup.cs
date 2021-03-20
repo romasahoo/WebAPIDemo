@@ -38,6 +38,8 @@ namespace WebAPICrudDemo
             .AddNewtonsoftJson(option => option.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
 
             services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+            services.AddScoped<IDepartmentRepository, DepartmentRepository>();
+
 
         }
 
@@ -47,6 +49,10 @@ namespace WebAPICrudDemo
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+            }
+            else
+            {
+                app.UseStatusCodePages();
             }
 
             app.UseRouting();

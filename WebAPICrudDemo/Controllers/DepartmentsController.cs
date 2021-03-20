@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebAPICrudDemo;
 using WebAPICrudDemo.Models;
+using WebAPICrudDemo.Repository;
+using WebAPICrudDemo.ViewModel;
 
 namespace WebAPICrudDemo.Controllers
 {
@@ -14,95 +16,153 @@ namespace WebAPICrudDemo.Controllers
     [ApiController]
     public class DepartmentsController : ControllerBase
     {
-        private readonly EmployeeContext _context;
+        IDepartmentRepository deptRepository;
 
-        public DepartmentsController(EmployeeContext context)
+        public DepartmentsController(IDepartmentRepository _deptRepository)
         {
-            _context = context;
+            deptRepository = _deptRepository;
         }
 
         // GET: api/Departments
         [HttpGet]
+        [Route("GetDepartments")]
         public async Task<ActionResult<IEnumerable<Department>>> GetDepartments()
         {
-            return await _context.Departments.ToListAsync();
+            try
+            {
+                var departments = await deptRepository.GetDepartments();
+                if (departments == null)
+                {
+                    return NotFound();
+                }
+
+                return Ok(departments);
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
         }
 
         // GET: api/Departments/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Department>> GetDepartment(int id)
+        [HttpGet]
+        [Route("GetDepartment")]
+        public async Task<ActionResult<Department>> GetDepartment(int? id)
         {
-            var department = await _context.Departments.FindAsync(id);
-
-            if (department == null)
-            {
-                return NotFound();
-            }
-
-            return department;
-        }
-
-        // PUT: api/Departments/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutDepartment(int id, Department department)
-        {
-            if (id != department.Id)
+            if (id == null)
             {
                 return BadRequest();
             }
 
-            _context.Entry(department).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!DepartmentExists(id))
+                var result = await deptRepository.GetDepartment(id);
+
+                if (result == null)
                 {
                     return NotFound();
                 }
-                else
+
+                return Ok(result);
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
+        }
+
+        // PUT: api/Departments/5
+        [HttpPut("{id}")]
+        [Route("UpdateDepartment")]
+        public async Task<IActionResult> UpdateDepartment(DepartmentViewModel departmentViewModel)
+        {
+            if (ModelState.IsValid)
+            {
+                try
                 {
-                    throw;
+                    if (departmentViewModel.Id > 0)
+                    {
+                        await deptRepository.UpdateDepartment(departmentViewModel);
+
+                        return Ok();
+                    }
+                    else
+                    {
+                        return StatusCode(400, "Department Id is not provided");
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    if (ex.GetType().FullName ==
+                             "Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException")
+                    {
+                        return NotFound();
+                    }
+                    return BadRequest();
                 }
             }
 
-            return NoContent();
+            return BadRequest();
         }
 
         // POST: api/Departments
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Department>> PostDepartment(Department department)
+        [Route("AddDepartment")]
+        public async Task<IActionResult> AddDepartment([FromBody] DepartmentViewModel departmentViewModel)
         {
-            _context.Departments.Add(department);
-            await _context.SaveChangesAsync();
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var departmentObject = await deptRepository.AddDepartment(departmentViewModel);
 
-            return CreatedAtAction("GetDepartment", new { id = department.Id }, department);
+                    return Ok(departmentObject);
+                }
+                catch (Exception)
+                {
+                    if (departmentViewModel.DepartmentName == null)
+                    {
+                        return StatusCode(400, " Department Name is not provided");
+                    }
+                }
+            }
+            return BadRequest();
         }
+
+
 
         // DELETE: api/Departments/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteDepartment(int id)
+        [HttpDelete]
+        [Route("DeleteDepartment")]
+        public async Task<IActionResult> DeleteDepartment(int? id)
         {
-            var department = await _context.Departments.FindAsync(id);
-            if (department == null)
+            int result;
+
+            if (id == null)
             {
-                return NotFound();
+                return BadRequest();
             }
 
-            _context.Departments.Remove(department);
-            await _context.SaveChangesAsync();
+            try
+            {
+                result = await deptRepository.DeleteDepartment(id);
+                if (result == 0)
+                {
+                    return NotFound();
+                }
+                return Ok();
+            }
+            catch (Exception)
+            {
 
-            return NoContent();
+                return BadRequest();
+            }
         }
 
-        private bool DepartmentExists(int id)
-        {
-            return _context.Departments.Any(e => e.Id == id);
-        }
+        //private bool DepartmentExists(int id)
+        //{
+        //    return _context.Departments.Any(e => e.Id == id);
+        //}
     }
 }
